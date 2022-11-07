@@ -15,11 +15,19 @@ import jobsRouter from './routes/jobsRouter.js'
 import notFoundMiddleware from './middleware/not-found.js'
 import errorHandlerMiddleware from './middleware/error-handler.js'
 
+
 app.use(express.json()) //make json data available to controllers
+console.log('Back end running.')
+
 
 app.get('/', (req, res) => {
     //throw new Error('error')
-    res.send('Welcome!')
+    res.send({msg: 'Welcome!'})
+})
+
+app.get('/api/v1', (req, res) => {
+    //throw new Error('error')
+    res.send({msg: 'API'})
 })
 
 app.use('/api/v1/auth', authRouter)
