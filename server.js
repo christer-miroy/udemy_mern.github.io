@@ -15,6 +15,7 @@ import jobsRouter from './routes/jobsRouter.js'
 //middleware
 import notFoundMiddleware from './middleware/not-found.js'
 import errorHandlerMiddleware from './middleware/error-handler.js'
+import authenticateUser from './middleware/auth.js'
 
 //morgan
 if (process.env.NODE_ENV !== 'production') {
@@ -36,7 +37,7 @@ app.get('/api/v1', (req, res) => {
 })
 
 app.use('/api/v1/auth', authRouter)
-app.use('/api/v1/jobs', jobsRouter)
+app.use('/api/v1/jobs', authenticateUser, jobsRouter)
 
 app.use(notFoundMiddleware) //does not match the current routes
 app.use(errorHandlerMiddleware) //all errors in the app
