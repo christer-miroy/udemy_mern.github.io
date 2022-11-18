@@ -23,14 +23,70 @@ const createJob = async(req, res) => {
 }
 
 const getAllJobs = async(req, res) => {
-    const jobs = await Job.find({createdBy: req.user.userId})
+    const { status, jobType, sort, search } = req.query
+    
+    const queryObject = {
+        createdBy: req.user.userId,
+    }
+    /* add stuff based on condition */
+    /* 1. filter based on status */
+    if (status && status !== 'all') {
+        /* if status is valid and is not equal to all */
+        queryObject.status = status
+    }
+    /* 2. filter based on job type */
+    if (jobType && jobType !== 'all') {
+        queryObject.jobType = jobType
+    }
+
+    /* search functionality */
+    if (search) {
+        queryObject.position = { $regex: search, $options: 'i'}
+        /* regex - regular expression, ,options: case insensitive */
+    }
+
+    /* NO AWAIT */
+    let result = Job.find(queryObject)
+
+    /* sort functionality (chain sort conditions) */
+    if (sort === 'latest') {
+        result = result.sort('-createdAt')
+        /* sort date created by descending order */
+    }
+
+    if (sort === 'oldest') {
+        result = result.sort('createdAt')
+        /* sort date created by ascending order */
+    }
+
+    if (sort === 'a-z') {
+        result = result.sort('position')
+        /* sort position by descending order */
+    }
+
+    if (sort === 'z-a') {
+        result = result.sort('-position')
+        /* sort position by descending order */
+    }
+
+    /* pagination */
+    const page = Number(req.query.page) || 1 //page number (page from req.query)
+    const limit = Number(req.query.limit) || 10 //max number of jobs will be displayed per batch
+    const skip = (page - 1) * limit //how many jobs will be skipping
+
+    result = result.skip(skip).limit(limit)
+
+    const jobs = await result
+
+    const totalJobs = await Job.countDocuments(queryObject)
+    const numOfPages = Math.ceil(totalJobs / limit) //ceil = ceiling
 
     res
     .status(StatusCodes.OK)
     .json({
         jobs,
-        totalJobs: jobs.length,
-        numOfPages: 1
+        totalJobs,
+        numOfPages
     })
 }
 
